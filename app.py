@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 import pandas as pd
 import joblib
+import os
 
 app = Flask(__name__)
 
@@ -12,16 +13,16 @@ models = {
 }
 
 # Feature names + units
-feature_names = {
-    'Cycle_Index': '',
-    'Discharge Time (s)': 'seconds',
-    'Decrement 3.6-3.4V (s)': 'seconds',
-    'Max. Voltage Dischar. (V)': 'Volts',
-    'Min. Voltage Charg. (V)': 'Volts',
-    'Time at 4.15V (s)': 'seconds',
-    'Time constant current (s)': 'seconds',
-    'Charging time (s)': 'seconds'
-}
+feature_names = [
+    'Cycle_Index',
+    'Discharge Time (s)',
+    'Decrement 3.6-3.4V (s)',
+    'Max. Voltage Dischar. (V)',
+    'Min. Voltage Charg. (V)',
+    'Time at 4.15V (s)',
+    'Time constant current (s)',
+    'Charging time (s)'
+]
 
 @app.route('/')
 def index():
@@ -33,12 +34,10 @@ def predict():
     model = models[model_name]
 
     # Collect input values in same order
-    input_values = []
-    for feature in feature_names.keys():
-        input_values.append(float(request.form[feature]))
+    input_values = [float(request.form[feature]) for feature in feature_names]
 
     # Convert to DataFrame
-    input_df = pd.DataFrame([input_values], columns=feature_names.keys())
+    input_df = pd.DataFrame([input_values], columns=feature_names)
 
     # Predict
     result = model.predict(input_df)[0]
@@ -46,4 +45,5 @@ def predict():
     return render_template('index.html', models=models.keys(), feature_names=feature_names, prediction=result)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
