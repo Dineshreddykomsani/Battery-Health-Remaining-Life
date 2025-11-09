@@ -5,33 +5,28 @@
     <title>Battery RUL Prediction</title>
 </head>
 <body>
-    <h2>Battery Health / RUL Prediction</h2>
+    <h2>Battery Health / Remaining Useful Life Prediction</h2>
 
     <form method="POST" action="/predict">
-
-        <!-- Select model -->
         <label>Select Model:</label>
-        <select name="model_name">
+        <select name="model_name" required>
             {% for model in models %}
                 <option value="{{ model }}">{{ model }}</option>
             {% endfor %}
         </select>
         <br><br>
 
-        <!-- Feature Inputs -->
         {% for feature, unit in feature_names.items() %}
-            <label>{{ feature }} {% if unit %} ({{ unit }}) {% endif %} :</label>
-            <input type="text" name="{{ feature }}" required placeholder="Enter {{ feature }}">
+            <label>{{ feature }} {% if unit %} ({{ unit }}) {% endif %}:</label>
+            <input type="text" name="{{ feature }}" required>
             <br><br>
         {% endfor %}
 
         <input type="submit" value="Predict">
-
     </form>
 
     {% if prediction is defined %}
-        <h3>Predicted Output: {{ prediction }}</h3>
+        <h3>Predicted Remaining Life: {{ prediction }}</h3>
     {% endif %}
-
 </body>
 </html>
