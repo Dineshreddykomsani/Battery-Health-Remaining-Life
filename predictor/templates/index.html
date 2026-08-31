@@ -1,0 +1,160 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Estimate battery remaining useful life with machine learning.">
+    <title>Battery Life Prediction | Battery AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'predictor/css/style.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav container" aria-label="Main navigation">
+            <a class="brand" href="#home" aria-label="Battery AI home">
+                <span class="brand-mark" aria-hidden="true">+</span>
+                <span>Battery <strong>AI</strong></span>
+            </a>
+            <div class="nav-links">
+                <a class="active" href="#home">Home</a>
+                <a href="#prediction">Prediction</a>
+                <a href="#about">About</a>
+            </div>
+            <a class="nav-action" href="#prediction">Launch predictor <span aria-hidden="true">↗</span></a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero" id="home">
+            <div class="hero-grid container">
+                <div class="hero-copy">
+                    <p class="eyebrow"><span class="pulse"></span> Predictive maintenance platform</p>
+                    <h1>Know how much<br><em>life</em> remains.</h1>
+                    <p class="hero-text">Estimate battery remaining useful life using machine learning and real-world battery performance data.</p>
+                    <a class="button button-primary" href="#prediction">Start prediction <span aria-hidden="true">↓</span></a>
+                </div>
+                <div class="hero-visual" aria-label="Battery analytics overview">
+                    <div class="orb orb-large"></div>
+                    <div class="orb orb-small"></div>
+                    <div class="hero-panel">
+                        <div class="panel-top">
+                            <span class="panel-label">LIVE MODEL OUTPUT</span>
+                            <span class="status-dot">Ready</span>
+                        </div>
+                        <div class="battery-icon" aria-hidden="true"><span></span></div>
+                        <p class="panel-value">RUL</p>
+                        <p class="panel-caption">Remaining useful life</p>
+                        <div class="panel-line"><span></span></div>
+                        <div class="panel-meta"><span>Battery health signal</span><strong>ML / 01</strong></div>
+                    </div>
+                    <div class="signal-card">
+                        <span class="signal-icon" aria-hidden="true">⌁</span>
+                        <div><strong>Data-informed</strong><small>Built for clearer decisions</small></div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-footer container">
+                <span>01 / 03</span>
+                <span class="scroll-hint">Scroll to explore <span aria-hidden="true">↓</span></span>
+            </div>
+        </section>
+
+        <section class="prediction-section section container" id="prediction">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">01 — Prediction workspace</p>
+                    <h2>Turn operating data<br>into <em>clarity.</em></h2>
+                </div>
+                <p class="section-intro">Enter the battery performance readings below. Our trained models will estimate its remaining useful life.</p>
+            </div>
+
+            <div class="workspace">
+                <form class="prediction-form" method="POST" action="/predict/">
+                    {% csrf_token %}
+                    <div class="form-header">
+                        <div>
+                            <span class="step-number">01</span>
+                            <h3>Battery inputs</h3>
+                        </div>
+                        <p>All fields required</p>
+                    </div>
+
+                    {% if models %}
+                    <div class="model-select form-group">
+                        <label for="model_name">Prediction model</label>
+                        <select id="model_name" name="model_name" required>
+                            <option value="">Choose a model</option>
+                            <option value="decision" {% if selected_model == 'decision' %}selected{% endif %}>Decision Tree</option>
+                            <option value="randomforest" {% if selected_model == 'randomforest' %}selected{% endif %}>Random Forest</option>
+                            <option value="xgboost" {% if selected_model == 'xgboost' %}selected{% endif %}>XGBoost</option>
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <div class="input-grid">
+                        {% for feature in feature_names %}
+                        <div class="form-group">
+                            <label for="field-{{ forloop.counter }}">{{ feature }}</label>
+                            <div class="input-wrap">
+                                <input id="field-{{ forloop.counter }}" type="number" step="any" name="{{ feature }}" placeholder="Enter value" required>
+                                <span class="input-index">{{ forloop.counter|stringformat:"02d" }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button class="button button-submit" type="submit">Run prediction <span aria-hidden="true">→</span></button>
+                </form>
+
+                <aside class="result-column" aria-live="polite">
+                    {% if prediction %}
+                    <div class="result-card">
+                        <div class="result-top"><span class="eyebrow">Prediction result</span><span class="result-check" aria-hidden="true">✓</span></div>
+                        <p class="result-label">Predicted remaining<br>useful life</p>
+                        <p class="result-value">{{ prediction }}</p>
+                        {% if selected_model %}<p class="result-model">Model used: <strong>{{ selected_model }}</strong></p>{% endif %}
+                        <div class="result-divider"></div>
+                        <p class="result-note">Estimated from the operating conditions you provided.</p>
+                    </div>
+                    {% else %}
+                    <div class="empty-result">
+                        <div class="empty-icon" aria-hidden="true">↗</div>
+                        <p class="eyebrow">Awaiting input</p>
+                        <h3>Your prediction<br>will appear here.</h3>
+                        <p>Complete the battery inputs to generate a model estimate.</p>
+                    </div>
+                    {% endif %}
+                    {% if error %}
+                    <div class="error-message" role="alert"><strong>Unable to generate prediction</strong><span>{{ error }}</span></div>
+                    {% endif %}
+                </aside>
+            </div>
+        </section>
+
+        <section class="about-section section" id="about">
+            <div class="container about-grid">
+                <div>
+                    <p class="eyebrow">02 — About the platform</p>
+                    <h2>Make battery health<br><em>more predictable.</em></h2>
+                </div>
+                <div class="about-copy">
+                    <p>Battery AI uses machine learning to translate charging, discharging, voltage, and cycle data into a useful estimate of remaining battery life.</p>
+                    <p>Understanding useful life earlier can support smarter maintenance planning, reduce unexpected downtime, and help teams make confident operational decisions.</p>
+                    <div class="about-stats"><div><strong>08</strong><span>Input signals</span></div><div><strong>03</strong><span>Available models</span></div><div><strong>01</strong><span>Clear estimate</span></div></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <a class="brand" href="#home"><span class="brand-mark" aria-hidden="true">+</span><span>Battery <strong>AI</strong></span></a>
+            <p>Machine learning for better battery decisions.</p>
+            <span class="footer-year">© 2024 Battery AI</span>
+        </div>
+    </footer>
+</body>
+</html>
