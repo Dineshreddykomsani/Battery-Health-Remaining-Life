@@ -72,7 +72,7 @@
             </div>
 
             <div class="workspace">
-                <form class="prediction-form" method="POST" action="/predict/">
+                <form class="prediction-form" method="POST" action="{% url 'predict' %}">
                     {% csrf_token %}
                     <div class="form-header">
                         <div>
@@ -110,7 +110,7 @@
                 </form>
 
                 <aside class="result-column" aria-live="polite">
-                    {% if prediction %}
+                    {% if prediction is not None %}
                     <div class="result-card">
                         <div class="result-top"><span class="eyebrow">Prediction result</span><span class="result-check" aria-hidden="true">✓</span></div>
                         <p class="result-label">Predicted remaining<br>useful life</p>

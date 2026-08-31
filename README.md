@@ -1,94 +1,54 @@
-# 🔋 Battery Health Prediction System
+# Battery Health / Remaining Useful Life
 
-This project is a **Machine Learning-powered web application** built using **Django** that predicts battery health based on input parameters.
+A Django application that estimates a battery's remaining useful life (RUL) from eight operating measurements. It provides a responsive HTML/CSS interface and performs inference with the project's existing Decision Tree, Random Forest, and XGBoost regression artifacts.
 
----
+## Important model note
 
-## 🚀 Features
+This repository contains pre-trained model files in `predictor/`. The application does not retrain, replace, or modify them. The models expect these inputs, in this exact order:
 
-* Predict battery health using trained ML model
-* Clean and responsive UI
-* Django-based backend
-* Real-time prediction
+1. `Cycle_Index`
+2. `Discharge Time (s)`
+3. `Decrement 3.6-3.4V (s)`
+4. `Max. Voltage Dischar. (V)`
+5. `Min. Voltage Charg. (V)`
+6. `Time at 4.15V (s)`
+7. `Time constant current (s)`
+8. `Charging time (s)`
 
----
+`scikit-learn==1.7.1` is pinned because that is the version recorded in the existing scikit-learn model artifacts.
 
-## 🛠️ Tech Stack
+## Local setup
 
-* Python
-* Django
-* Pandas, NumPy
-* Scikit-learn
-* HTML, CSS
+Requires Python 3.11 (see `.python-version`).
 
----
-
-## 📂 Project Structure
-
-```
-batterylife/
-│
-├── predictor/
-│   ├── model.pkl
-│   ├── views.py
-│   ├── urls.py
-│   └── templates/
-│       └── index.html
-│
-├── manage.py
-```
-
----
-
-## ⚙️ Setup Instructions
-
-### 1. Clone the repository
-
-```
-git clone <your-repo-link>
-cd batterylife
-```
-
-### 2. Create virtual environment
-
-```
-python -m venv venv
-venv\Scripts\activate
-```
-
-### 3. Install dependencies
-
-```
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
 pip install -r requirements.txt
-```
-
-### 4. Run server
-
-```
+python manage.py migrate
 python manage.py runserver
 ```
 
-### 5. Open in browser
+Open http://127.0.0.1:8000/. Before committing or deploying, run:
 
+```powershell
+python manage.py check
+python manage.py test
+python manage.py collectstatic --noinput
 ```
-http://127.0.0.1:8000/
-```
 
----
+## Configuration
 
-## 📊 Model Information
+| Variable | Local default | Hosted value |
+| --- | --- | --- |
+| `DJANGO_SECRET_KEY` | development-only fallback | a unique secret |
+| `DJANGO_DEBUG` | `True` | `False` |
+| `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | comma-separated allowed domains |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | empty | comma-separated `https://` origins when needed |
 
-The model was trained using battery dataset and exported as `model.pkl` using joblib.
+## Render deployment
 
----
+The repository includes `render.yaml` and a `Procfile`. Create a Render Web Service from this repository; Render installs the pinned dependencies, runs `collectstatic`, generates `DJANGO_SECRET_KEY`, and launches Gunicorn. Add the final public hostname to `DJANGO_ALLOWED_HOSTS` if you use a custom domain, and set `DJANGO_CSRF_TRUSTED_ORIGINS` to that `https://` domain for form posts.
 
-## 📌 Notes
-
-* Ensure feature inputs match training data
-* Model file must be placed inside `predictor/`
-
----
-
-## 👨‍💻 Author
-
-Dinesh Reddy
+SQLite is retained because the application has no persisted prediction data. Render's filesystem is ephemeral, so use a managed PostgreSQL database only if persistent Django data is added later.
